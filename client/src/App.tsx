@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 
 import Layout from "@/components/layout";
-import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import PatientDetail from "@/pages/patient-detail";
 import ChartDetail from "@/pages/chart-detail";
@@ -29,8 +28,23 @@ function Router() {
     );
   }
 
+  // Instead of a direct redirect which can cause loops, 
+  // we show a simple "Sign In" button or auto-redirect once.
   if (!user) {
-    return <Landing />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          <h1 className="text-2xl font-bold">Aetheris Medical Systems</h1>
+          <p className="text-muted-foreground">Please sign in to access your clinical dashboard.</p>
+          <button 
+            onClick={() => window.location.href = "/api/login"}
+            className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          >
+            Sign In with Replit
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
