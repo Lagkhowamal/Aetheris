@@ -120,20 +120,20 @@ export async function registerRoutes(
     const patient = await storage.getPatient(chart.patientId, userId);
     if (!patient) return res.status(404).json({ message: "Patient not found" });
 
-    const prompt = \`
+    const prompt = `
     Analyze the following patient encounter to provide a medical assessment.
     
     Patient Info:
-    Age: \${new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear()}
-    Gender: \${patient.gender}
-    Medical History: \${patient.medicalHistory || 'None provided'}
-    Current Medications: \${patient.currentMedications || 'None provided'}
-    Allergies: \${patient.allergies || 'None provided'}
+    Age: ${new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear()}
+    Gender: ${patient.gender}
+    Medical History: ${patient.medicalHistory || 'None provided'}
+    Current Medications: ${patient.currentMedications || 'None provided'}
+    Allergies: ${patient.allergies || 'None provided'}
 
     Encounter Info:
-    Chief Complaint: \${chart.chiefComplaint}
-    Symptoms: \${chart.symptoms}
-    Vitals: \${JSON.stringify(chart.vitals || {})}
+    Chief Complaint: ${chart.chiefComplaint}
+    Symptoms: ${chart.symptoms}
+    Vitals: ${JSON.stringify(chart.vitals || {})}
 
     Provide a JSON response with the following structure:
     {
@@ -143,7 +143,7 @@ export async function registerRoutes(
       "redFlags": ["flag1", "flag2"],
       "summary": "A brief clinical summary"
     }
-    \`;
+    `;
 
     try {
       const response = await openai.chat.completions.create({
