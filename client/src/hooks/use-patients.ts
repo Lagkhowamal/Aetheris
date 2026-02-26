@@ -44,3 +44,24 @@ export function useCreatePatient() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/patients"] }),
   });
 }
+
+export function useApprovePatient(id: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/patients/${id}/approve`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to approve patient");
+      }
+      return (await res.json()) as Patient;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+    },
+  });
+}

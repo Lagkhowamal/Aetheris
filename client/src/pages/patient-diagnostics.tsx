@@ -3,15 +3,39 @@ import { useQuery } from "@tanstack/react-query";
 import { Patient, Chart } from "@shared/schema";
 import { Loader2, Activity, Microscope, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useApprovePatient } from "@/hooks/use-patients";
 
 export default function PatientDiagnostics() {
-  // Using patient ID 1 as a default for demo
+  // fetch list and use first patient for demo
+  const { data: patients, isLoading: loadingPatients } = useQuery<Patient[]>({
+    queryKey: ["/api/patients"],
+    queryFn: async () => {
+      const res = await fetch("/api/patients", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch patients");
+      return (await res.json()) as Patient[];
+    },
+  });
+  const patientId = patients && patients[0]?.id ? patients[0].id : 0;
   const { data: patient, isLoading: isLoadingPatient } = useQuery<Patient>({
-    queryKey: ["/api/patients", 1],
+    queryKey: ["/api/patients", patientId],
+    queryFn: async () => {
+      const res = await fetch(`/api/patients/${patientId}`, { credentials: "include" });
+      if (res.status === 404) return null as any;
+      if (!res.ok) throw new Error("Failed to fetch patient");
+      return (await res.json()) as Patient;
+    },
+    enabled: !!patientId,
   });
 
   const { data: charts, isLoading: isLoadingCharts } = useQuery<Chart[]>({
-    queryKey: ["/api/patients", 1, "charts"],
+    queryKey: ["/api/patients", patientId, "charts"],
+    queryFn: async () => {
+      if (!patientId) return [];
+      const res = await fetch(`/api/patients/${patientId}/charts`, { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to fetch charts");
+      return (await res.json()) as Chart[];
+    },
+    enabled: !!patientId,
   });
 
   if (isLoadingPatient || isLoadingCharts) {
@@ -45,7 +69,30 @@ export default function PatientDiagnostics() {
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="space-y-6">
+        {latestChart && (
+          <Card className="glass-panel border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" />
+                Patient Report
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm"><strong>Chief complaint:</strong> {latestChart.chiefComplaint}</p>
+              <p className="text-sm"><strong>Symptoms:</strong> {latestChart.symptoms}</p>
+              {latestChart.vitals && (
+                <div className="text-sm">
+                  <strong>Vitals:</strong>
+                  <ul className="ml-4 list-disc">
+                    {Object.entries(latestChart.vitals).map(([k,v]) => v && (<li key={k}>{k}: {v}</li>))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="glass-panel border-border/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -98,7 +145,27 @@ export default function PatientDiagnostics() {
             </p>
           </CardContent>
         </Card>
+        {/* approval section */}
+        {analysis && !patient?.isApprovedByDoctor && (
+          <div className="flex justify-end mt-4">
+            <ApproveButton patientId={patient!.id} />
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+// approval button component
+function ApproveButton({ patientId }: { patientId: number }) {
+  const approve = useApprovePatient(patientId);
+  return (
+    <button
+      onClick={() => approve.mutate()}
+      disabled={approve.isPending}
+      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+    >
+      {approve.isPending ? "Approving..." : "Mark as Reviewed by Doctor"}
+    </button>
   );
 }

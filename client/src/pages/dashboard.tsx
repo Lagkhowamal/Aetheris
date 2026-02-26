@@ -43,7 +43,7 @@ export default function Dashboard() {
   function onSubmit(data: PatientFormValues) {
     createPatient.mutate({
       ...data,
-      dateOfBirth: new Date(data.dateOfBirth).toISOString(),
+      dateOfBirth: data.dateOfBirth, // Keep as YYYY-MM-DD format
     }, {
       onSuccess: () => {
         setIsDialogOpen(false);

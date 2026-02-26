@@ -17,6 +17,7 @@ export interface IStorage {
   getPatient(id: number, userId: string): Promise<Patient | undefined>;
   createPatient(patient: InsertPatient): Promise<Patient>;
   updatePatient(id: number, userId: string, updates: UpdatePatientRequest): Promise<Patient | undefined>;
+  updatePatientApproval(id: number, userId: string): Promise<Patient | undefined>;
   deletePatient(id: number, userId: string): Promise<void>;
 
   // Charts
@@ -45,6 +46,14 @@ export class DatabaseStorage implements IStorage {
   async updatePatient(id: number, userId: string, updates: UpdatePatientRequest): Promise<Patient | undefined> {
     const [updated] = await db.update(patients)
       .set(updates)
+      .where(and(eq(patients.id, id), eq(patients.userId, userId)))
+      .returning();
+    return updated;
+  }
+
+  async updatePatientApproval(id: number, userId: string): Promise<Patient | undefined> {
+    const [updated] = await db.update(patients)
+      .set({ isApprovedByDoctor: true })
       .where(and(eq(patients.id, id), eq(patients.userId, userId)))
       .returning();
     return updated;

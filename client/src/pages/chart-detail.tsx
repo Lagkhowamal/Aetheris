@@ -126,11 +126,11 @@ export default function ChartDetail() {
                   </Button>
                 </div>
               ) : (
-                <div className="p-6 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+                <div className="p-6 space-y-8 animate-in slide-in-from-bottom-4 duration-500 overflow-y-auto max-h-[70vh]">
                   
                   {chart.aiAnalysis.summary && (
-                    <div className="bg-purple-50/50 dark:bg-purple-900/10 p-5 rounded-2xl border border-purple-100/50 dark:border-purple-900/30">
-                      <p className="text-foreground leading-relaxed font-medium">
+                    <div className="bg-purple-50/50 dark:bg-purple-900/10 p-5 rounded-2xl border border-purple-100/50 dark:border-purple-900/30 break-words">
+                      <p className="text-foreground leading-relaxed font-medium break-words whitespace-pre-wrap">
                         {chart.aiAnalysis.summary}
                       </p>
                     </div>

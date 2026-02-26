@@ -3,22 +3,16 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { registerChatRoutes } from "./replit_integrations/chat";
-import { registerImageRoutes } from "./replit_integrations/image";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
   // Authentication removed as requested
-  registerChatRoutes(app);
-  registerImageRoutes(app);
 
   const DEFAULT_USER_ID = "default-provider-id";
 
@@ -32,6 +26,14 @@ export async function registerRoutes(
     const patient = await storage.getPatient(Number(req.params.id), DEFAULT_USER_ID);
     if (!patient) return res.status(404).json({ message: "Patient not found" });
     res.json(patient);
+  });
+
+  // mark patient analysis as approved by doctor
+  app.patch(`${api.patients.get.path}/approve`, async (req: any, res) => {
+    const patientId = Number(req.params.id);
+    const updated = await storage.updatePatientApproval(patientId, DEFAULT_USER_ID);
+    if (!updated) return res.status(404).json({ message: "Patient not found" });
+    res.json(updated);
   });
 
   app.post(api.patients.create.path, async (req: any, res) => {
@@ -119,39 +121,47 @@ export async function registerRoutes(
     const patient = await storage.getPatient(chart.patientId, userId);
     if (!patient) return res.status(404).json({ message: "Patient not found" });
 
-    const prompt = `
-    Analyze the following patient encounter to provide a medical assessment.
-    
-    Patient Info:
-    Age: ${new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear()}
-    Gender: ${patient.gender}
-    Medical History: ${patient.medicalHistory || 'None provided'}
-    Current Medications: ${patient.currentMedications || 'None provided'}
-    Allergies: ${patient.allergies || 'None provided'}
+    const age = new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear();
 
-    Encounter Info:
-    Chief Complaint: ${chart.chiefComplaint}
-    Symptoms: ${chart.symptoms}
-    Vitals: ${JSON.stringify(chart.vitals || {})}
+    const prompt = `You are an experienced clinical AI assistant helping doctors with patient diagnosis and treatment planning. Provide a comprehensive medical analysis based on the patient information below.
 
-    Provide a JSON response with the following structure:
-    {
-      "possibleConditions": ["condition1", "condition2"],
-      "recommendedTests": ["test1", "test2"],
-      "suggestedTreatments": ["treatment1", "treatment2"],
-      "redFlags": ["flag1", "flag2"],
-      "summary": "A brief clinical summary"
-    }
-    `;
+IMPORTANT: Always format your response as valid JSON with the exact structure specified, with no additional text before or after the JSON.
+
+Patient Information:
+- Name: ${patient.firstName} ${patient.lastName}
+- Age: ${age} years old
+- Gender: ${patient.gender}
+- Medical History: ${patient.medicalHistory || 'Not provided'}
+- Current Medications: ${patient.currentMedications || 'None reported'}
+- Allergies: ${patient.allergies || 'None reported'}
+
+Current Encounter:
+- Chief Complaint: ${chart.chiefComplaint}
+- Symptoms: ${chart.symptoms}
+- Vitals: ${chart.vitals ? JSON.stringify(chart.vitals) : 'Not recorded'}
+
+Please analyze this patient encounter and provide your assessment in the following JSON format only:
+{
+  "possibleConditions": ["condition1 (likelihood assessment)", "condition2 (likelihood assessment)"],
+  "recommendedTests": ["specific test 1 with rationale", "specific test 2 with rationale"],
+  "suggestedTreatments": ["treatment option 1", "treatment option 2", "treatment option 3"],
+  "redFlags": ["warning sign 1 requiring immediate attention", "warning sign 2"],
+  "summary": "A comprehensive clinical summary including differential diagnosis, key findings, and next steps for the doctor to consider"
+}`;
 
     try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-5.1",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
-      });
-
-      const analysis = JSON.parse(response.choices[0]?.message?.content || "{}");
+      const response = await model.generateContent(prompt);
+      const text = response.response.text();
+      
+      // Clean up the response if it has markdown code blocks
+      let jsonText = text;
+      if (jsonText.includes('```json')) {
+        jsonText = jsonText.split('```json')[1].split('```')[0].trim();
+      } else if (jsonText.includes('```')) {
+        jsonText = jsonText.split('```')[1].split('```')[0].trim();
+      }
+      
+      const analysis = JSON.parse(jsonText);
       
       const updatedChart = await storage.updateChartAnalysis(chartId, userId, analysis);
       res.json(updatedChart);
