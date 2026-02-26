@@ -208,7 +208,7 @@ export default function PatientDetail() {
                           <div>
                             <h4 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">{chart.chiefComplaint}</h4>
                             <div className="flex items-center text-sm text-muted-foreground mt-1 gap-4">
-                              <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1.5"/> {format(new Date(chart.createdAt), "MMM d, yyyy 'at' h:mm a")}</span>
+                              <span className="flex items-center"><Clock className="w-3.5 h-3.5 mr-1.5"/> {chart.createdAt && format(new Date(chart.createdAt), "MMM d, yyyy 'at' h:mm a")}</span>
                               {chart.status === 'completed' ? (
                                 <span className="flex items-center text-emerald-600 dark:text-emerald-400 font-medium"><CheckCircle2 className="w-3.5 h-3.5 mr-1"/> Completed</span>
                               ) : (

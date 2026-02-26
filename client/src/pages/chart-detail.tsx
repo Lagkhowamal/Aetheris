@@ -34,7 +34,7 @@ export default function ChartDetail() {
             <div className="bg-slate-50 dark:bg-slate-950 p-6 border-b border-border/50">
               <div className="flex justify-between items-start mb-2">
                 <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-3 py-1">Encounter Record</Badge>
-                <span className="text-sm text-muted-foreground font-medium">{format(new Date(chart.createdAt), "MMMM d, yyyy")}</span>
+                <span className="text-sm text-muted-foreground font-medium">{ chart.createdAt && format(new Date(chart.createdAt), "MMMM d, yyyy")}</span>
               </div>
               <h1 className="text-2xl font-bold text-foreground mt-2 mb-1">{chart.chiefComplaint}</h1>
               <p className="text-muted-foreground text-sm font-medium">Patient: {patient.firstName} {patient.lastName}</p>
