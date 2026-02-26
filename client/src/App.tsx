@@ -10,6 +10,9 @@ import PatientDetail from "@/pages/patient-detail";
 import ChartDetail from "@/pages/chart-detail";
 import ChatList from "@/pages/chat-list";
 import ChatDetail from "@/pages/chat-detail";
+import DoctorPortal from "@/pages/doctor-portal";
+import PatientPortal from "@/pages/patient-portal";
+import PatientDiagnostics from "@/pages/patient-diagnostics";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,6 +24,9 @@ function Router() {
         <Route path="/charts/:id" component={ChartDetail} />
         <Route path="/chat" component={ChatList} />
         <Route path="/chat/:id" component={ChatDetail} />
+        <Route path="/doctor-portal" component={DoctorPortal} />
+        <Route path="/patient-portal" component={PatientPortal} />
+        <Route path="/patient-diagnostics" component={PatientDiagnostics} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

@@ -20,6 +20,7 @@ export const patients = pgTable("patients", {
   medicalHistory: text("medical_history"),
   currentMedications: text("current_medications"),
   allergies: text("allergies"),
+  isApprovedByDoctor: boolean("is_approved_by_doctor").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
