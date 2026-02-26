@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Users, MessageSquare, Activity, Settings, LogOut, Stethoscope } from "lucide-react";
+import { Users, MessageSquare, Activity, Settings, LogOut, Stethoscope, FileText } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Sidebar,
@@ -45,6 +45,30 @@ export function AppSidebar() {
                   <Link href="/">
                     <Users className="w-5 h-5" />
                     <span className="font-medium">Patients</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location === "/doctor-portal"}>
+                  <Link href="/doctor-portal">
+                    <Stethoscope className="w-5 h-5" />
+                    <span className="font-medium">Doctor Portal</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location === "/patient-portal"}>
+                  <Link href="/patient-portal">
+                    <FileText className="w-5 h-5" />
+                    <span className="font-medium">Patient Reports</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location === "/patient-diagnostics"}>
+                  <Link href="/patient-diagnostics">
+                    <Activity className="w-5 h-5" />
+                    <span className="font-medium">AI Diagnostics</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
