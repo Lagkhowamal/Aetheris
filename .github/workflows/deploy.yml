@@ -39,6 +39,10 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Show build outputs
+        run: |
+          echo "dist directory contents:" && ls -R dist || echo "dist missing"
+          echo "dist/public directory contents:" && ls -R dist/public || echo "dist/public missing"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
